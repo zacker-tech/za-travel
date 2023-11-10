@@ -1,6 +1,6 @@
 {
   "singleQuote": true,
-  "importOrder": ["^@(.*)/(.*)$", "^[./]"],
+  "importOrder": ["^@(reduxjs|mui|emotion)/(.*)$", "^@(.*)/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
   "plugins": ["@trivago/prettier-plugin-sort-imports"]
