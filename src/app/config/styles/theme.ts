@@ -16,7 +16,7 @@ theme.typography.h1 = {
   fontWeight: FontWeights.medium,
   fontSize: '2rem',
   lineHeight: '3rem',
-  [theme.breakpoints.down('lg')]: {
+  [theme.breakpoints.down('md')]: {
     fontSize: '1.5rem',
     lineHeight: '2.25rem',
   },
