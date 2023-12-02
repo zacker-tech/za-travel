@@ -37,7 +37,7 @@ export default function AddTripWizard() {
         </Typography>
         <Box
           sx={{
-            minHeight: { xs: '58vh', md: '40vh' },
+            minHeight: { xs: '58vh', md: 'auto' },
             maxHeight: { xs: '58vh', md: '40vh' },
             overflowY: 'scroll',
           }}
