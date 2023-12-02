@@ -50,7 +50,7 @@ export default function LoginForm() {
             autoFocus
             helperText={fieldState.error?.message}
             error={Boolean(fieldState.error)}
-            sx={{ mb: 3, mt: 0 }}
+            sx={{ mb: 3 }}
             {...field}
           />
         )}
@@ -71,7 +71,7 @@ export default function LoginForm() {
             autoComplete="current-password"
             helperText={fieldState.error?.message}
             error={Boolean(fieldState.error)}
-            sx={{ mb: { xs: 3, md: 5 }, mt: 0 }}
+            sx={{ mb: { xs: 3, md: 5 } }}
             {...field}
           />
         )}
