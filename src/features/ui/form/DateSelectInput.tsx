@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { type Control, Controller } from 'react-hook-form';
 
 import { DatePicker } from '@mui/x-date-pickers';
@@ -38,12 +39,22 @@ export default function DateSelectInput({
             inputAdornment: { position: 'start' },
           }}
           {...field}
+          onChange={(newValue) => {
+            let value;
+            try {
+              value = dayjs(newValue).toISOString();
+            } catch (_) {
+              /* empty */
+            }
+            field.onChange(value ?? newValue);
+          }}
           sx={{
             width: '100%',
             '& .MuiSvgIcon-root': { ml: 0.1 },
           }}
-          maxDate={maxDate}
-          minDate={minDate}
+          value={field.value ? dayjs(field.value) : null}
+          maxDate={maxDate ? dayjs(maxDate) : null}
+          minDate={minDate ? dayjs(minDate) : null}
         />
       )}
     />
