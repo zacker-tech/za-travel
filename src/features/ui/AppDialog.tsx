@@ -24,7 +24,7 @@ interface Props {
   primaryButtonText: string;
   onPrimaryButtonClick: () => void;
   children: React.ReactNode;
-  isForm: boolean;
+  isForm?: boolean;
   maxWidth?: number;
 }
 
