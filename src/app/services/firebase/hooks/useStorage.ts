@@ -1,8 +1,9 @@
-import { ref, uploadBytesResumable } from 'firebase/storage';
+import { deleteObject, ref, uploadBytesResumable } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 
 import { selectUser } from '@features/auth/store/authSlice';
 import { DocumentToUpload, TripFile } from '@features/trip/types';
+import useToast from '@hooks/useToast';
 import { useAppSelector } from '@store/index';
 
 import { storage } from '../firebase';
@@ -11,32 +12,84 @@ interface Props {
   onAllUploadSuccess: (uploadedFiles: TripFile[]) => void;
 }
 
+interface State {
+  uploadProgresses: (number | undefined)[];
+  uploadErrors: string[];
+  uploadedFiles: TripFile[];
+  totalFiles: number;
+  isLoading: boolean;
+  uploadedFilesCount: number;
+  removingFilePath: null | string;
+}
+
+const defaultState: State = {
+  isLoading: false,
+  uploadProgresses: [],
+  uploadErrors: [],
+  uploadedFiles: [],
+  totalFiles: 0,
+  uploadedFilesCount: 0,
+  removingFilePath: null,
+};
+
 export function useStorage({ onAllUploadSuccess }: Props) {
   const user = useAppSelector(selectUser);
-
-  const [state, setState] = useState<{
-    uploadProgresses: (number | undefined)[];
-    uploadErrors: string[];
-    uploadedFiles: TripFile[];
-    totalFiles: number;
-    uploadedFilesCount: number;
-  }>({
-    uploadProgresses: [],
-    uploadErrors: [],
-    uploadedFiles: [],
-    totalFiles: 0,
-    uploadedFilesCount: 0,
-  });
+  const { showErrorMessage } = useToast();
+  const [state, setState] = useState<State>(defaultState);
 
   useEffect(() => {
     if (state.totalFiles > 0 && state.uploadedFilesCount === state.totalFiles) {
+      setState((prev) => ({ ...prev, isLoading: false }));
       onAllUploadSuccess(state.uploadedFiles);
+    } else if (
+      state.totalFiles > 0 &&
+      state.uploadedFilesCount + state.uploadErrors.filter(Boolean).length ===
+        state.totalFiles
+    ) {
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    state.totalFiles,
+    state.uploadErrors,
+    state.uploadedFiles,
+    state.uploadedFilesCount,
+  ]);
 
-  const uploadFiles = (path: string, files: DocumentToUpload[]) => {
+  const uploadFiles = (path: string, files: (DocumentToUpload | null)[]) => {
+    setState(defaultState);
+
     files.forEach((file, index) => {
+      setState((prev) => ({
+        ...prev,
+        totalFiles: files.length,
+        isLoading: true,
+      }));
+
+      if (file?.storagePath) {
+        setState((prevState) => {
+          const newUploadedFiles = [...prevState.uploadedFiles];
+          newUploadedFiles[index] = file;
+
+          return {
+            ...prevState,
+            uploadedFilesCount: ++prevState.uploadedFilesCount,
+            uploadedFiles: newUploadedFiles,
+          };
+        });
+        return;
+      }
+
       if (!file?.file) {
+        setState((prevState) => {
+          const newErrors = [...prevState.uploadErrors];
+          newErrors[index] = `We are unable to get the file to upload it!`;
+          return {
+            ...prevState,
+            uploadErrors: newErrors,
+          };
+        });
+
         return;
       }
 
@@ -45,8 +98,6 @@ export function useStorage({ onAllUploadSuccess }: Props) {
         `user-data/${user?.uid}/${path}/${file.fileName}`,
       );
       const uploadTask = uploadBytesResumable(storageRef, file.file);
-
-      setState((prev) => ({ ...prev, totalFiles: files.length }));
 
       uploadTask.on(
         'state_changed',
@@ -99,8 +150,27 @@ export function useStorage({ onAllUploadSuccess }: Props) {
     });
   };
 
+  const removeFile = async (storagePath: string) => {
+    const desertRef = ref(storage, storagePath);
+    setState((prev) => ({ ...prev, removingFilePath: storagePath }));
+
+    try {
+      await deleteObject(desertRef);
+      return true;
+    } catch (error) {
+      showErrorMessage(
+        'Failed to remove file. Please try again later or contact support!',
+      );
+    } finally {
+      setState((prev) => ({ ...prev, removingFilePath: null }));
+    }
+
+    return false;
+  };
+
   return {
     ...state,
     uploadFiles,
+    removeFile,
   };
 }
