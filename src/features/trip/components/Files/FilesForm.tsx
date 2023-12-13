@@ -7,14 +7,19 @@ import {
   useForm,
 } from 'react-hook-form';
 
-import { FormHelperText, Stack } from '@mui/material';
+import { Box, FormHelperText, Stack } from '@mui/material';
 
 import useToast from '@hooks/useToast';
 import { getDownloadURL, useStorage } from '@services/firebase';
 
-import { MAX_FILE_SIZE_MB } from '../../constants';
+import {
+  ACCEPTED_DOCUMENT_FORMATS,
+  ACCEPTED_PHOTO_FORMATS,
+  MAX_FILE_SIZE_MB,
+} from '../../constants';
 import type { DocumentToUpload, TripFile } from '../../types';
 import DocumentCard from './DocumentCard';
+import PhotoCard from './PhotoCard';
 import UploadFileButton from './UploadFileButton';
 
 interface Props {
@@ -22,6 +27,7 @@ interface Props {
   onSubmit: (files: TripFile[]) => void;
   onChange: (files: TripFile[]) => void;
   SubmitComponent: React.ReactNode;
+  type: 'document' | 'photo';
 }
 
 interface FormInput {
@@ -42,6 +48,11 @@ export default function FilesForm(props: Props) {
     removingFilePath,
     uploadErrors,
   } = useFilesUploadForm(props);
+  const isPhotosForm = props.type === 'photo';
+  const isDocumentsForm = props.type === 'document';
+  const acceptedFileFormats = isPhotosForm
+    ? ACCEPTED_PHOTO_FORMATS
+    : ACCEPTED_DOCUMENT_FORMATS;
 
   return (
     <Stack
@@ -55,12 +66,12 @@ export default function FilesForm(props: Props) {
     >
       <UploadFileButton
         onClick={onFileAdd}
-        mainText="Upload document"
-        subText={`PDF (max. ${MAX_FILE_SIZE_MB}MB)`}
+        mainText={`Upload ${props.type}`}
+        subText={`${acceptedFileFormats} (max. ${MAX_FILE_SIZE_MB}MB)`}
         showSubText
         sx={{
-          width: { xs: '100%', md: 200 },
-          height: { xs: 140, md: 260 },
+          width: { xs: '100%', md: isPhotosForm ? 261 : 200 },
+          height: { xs: 140, md: isPhotosForm ? 250 : 260 },
         }}
       />
 
@@ -68,17 +79,42 @@ export default function FilesForm(props: Props) {
         const showCard = Boolean(file?.url || file.storagePath);
 
         return (
-          <Stack key={file.fileName} sx={{ height: 260 }}>
+          <Stack
+            key={file.fileName}
+            sx={{ height: isPhotosForm ? { xs: 171, md: 250 } : 260 }}
+          >
             {showCard && (
-              <DocumentCard
-                name={file.fileName}
-                url={file.url}
-                onRemoveClick={() => onFileRemove(index)}
-                uploadProgress={uploadProgresses[index]}
-                isRemoving={Boolean(
-                  file.storagePath && removingFilePath === file.storagePath,
+              <>
+                {isDocumentsForm && (
+                  <DocumentCard
+                    name={file.fileName}
+                    url={file.url}
+                    onRemoveClick={() => onFileRemove(index)}
+                    uploadProgress={uploadProgresses[index]}
+                    isRemoving={Boolean(
+                      file.storagePath && removingFilePath === file.storagePath,
+                    )}
+                  />
                 )}
-              />
+                {isPhotosForm && (
+                  <Box
+                    sx={{
+                      width: { xs: 171, md: 261 },
+                      height: { xs: 171, md: 250 },
+                    }}
+                  >
+                    <PhotoCard
+                      src={file.url}
+                      onRemoveClick={() => onFileRemove(index)}
+                      uploadProgress={uploadProgresses[index]}
+                      isRemoving={Boolean(
+                        file.storagePath &&
+                          removingFilePath === file.storagePath,
+                      )}
+                    />
+                  </Box>
+                )}
+              </>
             )}
             {uploadErrors[index] && (
               <FormHelperText error>{uploadErrors[index]}</FormHelperText>
@@ -93,6 +129,7 @@ export default function FilesForm(props: Props) {
                   type="file"
                   id="fileInput"
                   hidden
+                  accept={acceptedFileFormats}
                   onChange={(event) => onFileInputChange(event, field.onChange)}
                 />
               )}
@@ -106,19 +143,6 @@ export default function FilesForm(props: Props) {
 }
 
 function useFilesUploadForm(props: Props) {
-  const {
-    uploadFiles,
-    uploadProgresses,
-    removeFile,
-    isLoading,
-    removingFilePath,
-    uploadErrors,
-  } = useStorage({
-    onAllUploadSuccess: (uploadedFiles) => {
-      props.onSubmit(uploadedFiles);
-    },
-  });
-  const disableChange = isLoading || Boolean(removingFilePath);
   const { showErrorMessage } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { watch, handleSubmit, control } = useForm<FormInput>({
@@ -131,9 +155,30 @@ function useFilesUploadForm(props: Props) {
     control,
     name: 'files',
   });
+  const {
+    uploadFiles,
+    uploadProgresses,
+    removeFile,
+    isLoading,
+    removingFilePath,
+    uploadErrors,
+  } = useStorage({
+    onAllUploadSuccess: (uploadedFiles) => {
+      props.onSubmit(uploadedFiles);
+    },
+    onOneUploadSuccess: (index, uploadedFile) => {
+      update(index, uploadedFile);
+    },
+  });
+  const disableChange = isLoading || Boolean(removingFilePath);
 
   const onSubmit: SubmitHandler<FormInput> = (data) => {
     if (disableChange) {
+      return;
+    }
+
+    if (!data?.files || data.files.length === 0) {
+      props.onSubmit([]);
       return;
     }
 
@@ -142,7 +187,7 @@ function useFilesUploadForm(props: Props) {
       filteredFiles.pop();
     }
 
-    uploadFiles('documents', filteredFiles);
+    uploadFiles(`${props.type}s`, filteredFiles);
   };
 
   const onFileAdd = () => {
@@ -181,6 +226,12 @@ function useFilesUploadForm(props: Props) {
 
     if (!file) {
       return;
+    }
+
+    if (file.size > 1024 * 1024 * MAX_FILE_SIZE_MB) {
+      return showErrorMessage(
+        `File size is too big. Maximum size is: ${MAX_FILE_SIZE_MB}MB`,
+      );
     }
 
     if (files.find((existingFile) => existingFile.fileName === file.name)) {
