@@ -1,5 +1,3 @@
-import { type SubmitHandler } from 'react-hook-form';
-
 import { useAppDispatch, useAppSelector } from '@store/index';
 
 import PlacesForm from '../../../components/PlacesForm';
@@ -11,10 +9,6 @@ import {
 } from '../../store/tripWizardSlice';
 import Pagination from '../Navigation/Pagination';
 
-interface FormInput {
-  places: Trip['places'];
-}
-
 export default function Places() {
   const { places, onSubmit } = usePlacesForm();
 
@@ -23,6 +17,7 @@ export default function Places() {
       defaultPlaces={places}
       onSubmit={onSubmit}
       SubmitComponent={<Pagination />}
+      autoFocus
     />
   );
 }
@@ -31,8 +26,8 @@ function usePlacesForm() {
   const dispatch = useAppDispatch();
   const trip = useAppSelector(selectWizardTrip);
 
-  const onSubmit: SubmitHandler<FormInput> = (data) => {
-    dispatch(setPlaces(data.places));
+  const onSubmit = (places: Trip['places']) => {
+    dispatch(setPlaces(places));
     dispatch(nextStep());
   };
 

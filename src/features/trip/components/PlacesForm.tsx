@@ -1,6 +1,9 @@
+import debounce from 'lodash.debounce';
+import { useCallback, useEffect } from 'react';
 import {
   Controller,
   type SubmitHandler,
+  type UseFormWatch,
   useFieldArray,
   useForm,
 } from 'react-hook-form';
@@ -12,8 +15,10 @@ import type { Trip } from '../types';
 
 interface Props {
   defaultPlaces: Trip['places'];
-  onSubmit: SubmitHandler<FormInput>;
-  SubmitComponent: React.ReactNode;
+  onSubmit?: (places: Trip['places']) => void;
+  onChange?: (newPlaces: Trip['places']) => void;
+  autoFocus?: boolean;
+  SubmitComponent?: React.ReactNode;
 }
 
 interface FormInput {
@@ -21,13 +26,19 @@ interface FormInput {
 }
 
 export default function PlacesForm(props: Props) {
-  const { places, handleSubmit, control, errors, onInputKeyDown } =
-    usePlacesForm(props);
+  const {
+    places,
+    handleSubmit,
+    control,
+    errors,
+    onInputKeyDown,
+    onFormSubmit,
+  } = usePlacesForm(props);
 
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(props.onSubmit)}
+      onSubmit={handleSubmit(onFormSubmit)}
       noValidate
       sx={{ width: '100%' }}
       gap={1}
@@ -57,7 +68,7 @@ export default function PlacesForm(props: Props) {
                   placeholder="Type here..."
                   inputProps={{ 'aria-label': 'Place Name' }}
                   onKeyDown={(event) => onInputKeyDown(event, index)}
-                  autoFocus={index === places.length - 1}
+                  autoFocus={props.autoFocus && index === places.length - 1}
                   sx={{
                     textDecoration: place.isChecked ? 'line-through' : 'none',
                     width: '100%',
@@ -79,7 +90,7 @@ export default function PlacesForm(props: Props) {
   );
 }
 
-function usePlacesForm({ defaultPlaces }: Props) {
+function usePlacesForm({ defaultPlaces, onSubmit, onChange }: Props) {
   const {
     watch,
     handleSubmit,
@@ -117,11 +128,39 @@ function usePlacesForm({ defaultPlaces }: Props) {
     }
   };
 
+  const onFormSubmit: SubmitHandler<FormInput> = (data) => {
+    onSubmit?.(data.places);
+  };
+
+  useWatchChange(watch, onChange);
+
   return {
     handleSubmit,
     control,
     places,
     errors,
     onInputKeyDown,
+    onFormSubmit,
   };
+}
+
+function useWatchChange(
+  watch: UseFormWatch<FormInput>,
+  onChange?: (newPlaces: Trip['places']) => void,
+) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onUpdateDebounced = useCallback(
+    debounce((data: Trip['places']) => {
+      onChange?.(data);
+    }, 500),
+    [],
+  );
+
+  useEffect(() => {
+    const formUpdateSubscription = watch((newValues) => {
+      onUpdateDebounced(newValues.places as Trip['places']);
+    });
+
+    return () => formUpdateSubscription.unsubscribe();
+  }, [onUpdateDebounced, watch]);
 }
