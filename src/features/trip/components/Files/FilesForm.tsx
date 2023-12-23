@@ -1,8 +1,10 @@
+import isEqual from 'lodash.isequal';
 import { useEffect, useRef } from 'react';
 import {
   Controller,
   type SubmitHandler,
   type UseFieldArrayUpdate,
+  type UseFormWatch,
   useFieldArray,
   useForm,
 } from 'react-hook-form';
@@ -25,10 +27,14 @@ import UploadFileButton from './UploadFileButton';
 
 interface Props {
   defaultFiles: TripFile[];
-  onSubmit: (files: TripFile[]) => void;
-  onChange: (files: TripFile[]) => void;
-  SubmitComponent: React.ReactNode;
+  onSubmit?: (files: TripFile[]) => void;
+  onFileStorageRemoval?: (updatedFiles: TripFile[]) => void;
+  autoUpload?: boolean;
+  // onChange is only called for files that were uploaded to the storage
+  onChange?: (updatedFiles: TripFile[]) => void;
+  SubmitComponent?: React.ReactNode;
   type: 'document' | 'photo';
+  tripId: string;
 }
 
 interface FormInput {
@@ -165,7 +171,7 @@ function useFilesUploadForm(props: Props) {
     uploadErrors,
   } = useStorage({
     onAllUploadSuccess: (uploadedFiles) => {
-      props.onSubmit(uploadedFiles);
+      props.onSubmit?.(uploadedFiles);
     },
     onOneUploadSuccess: (index, uploadedFile) => {
       update(index, uploadedFile);
@@ -179,7 +185,7 @@ function useFilesUploadForm(props: Props) {
     }
 
     if (!data?.files || data.files.length === 0) {
-      props.onSubmit([]);
+      props.onSubmit?.([]);
       return;
     }
 
@@ -188,7 +194,7 @@ function useFilesUploadForm(props: Props) {
       filteredFiles.pop();
     }
 
-    uploadFiles(`${props.type}s`, filteredFiles);
+    uploadFiles(`${props.type}s/${props.tripId}`, filteredFiles);
   };
 
   const onFileAdd = () => {
@@ -222,7 +228,10 @@ function useFilesUploadForm(props: Props) {
       const wasFileRemoved = await removeFile(file.storagePath);
       if (wasFileRemoved) {
         remove(index);
-        props.onChange([...files.slice(0, index), ...files.slice(index + 1)]);
+        props.onFileStorageRemoval?.([
+          ...files.slice(0, index),
+          ...files.slice(index + 1),
+        ]);
       }
     } else {
       remove(index);
@@ -255,14 +264,22 @@ function useFilesUploadForm(props: Props) {
       );
     }
 
-    onChange({
+    const newFile = {
       fileName: file?.name,
       file,
       url: URL.createObjectURL(file),
-    });
+    };
+    onChange(newFile);
+
+    if (props.autoUpload) {
+      const filesCopy = [...files];
+      filesCopy[filesCopy.length - 1] = newFile;
+      uploadFiles(`${props.type}s//${props.tripId}`, filesCopy);
+    }
   };
 
   useFilesUrlsUpdate(files, update);
+  useWatchChange(watch, files, props.onChange);
 
   return {
     onSubmit,
@@ -298,4 +315,36 @@ function useFilesUrlsUpdate(
       }),
     [files, update],
   );
+}
+
+function useWatchChange(
+  watch: UseFormWatch<FormInput>,
+  files: TripFile[],
+  onChange?: (data: TripFile[]) => void,
+) {
+  const previousFiles = useRef<TripFile[]>(
+    files.map((file) => ({
+      storagePath: file!.storagePath!,
+      fileName: file!.fileName!,
+    })),
+  );
+
+  useEffect(() => {
+    const formUpdateSubscription = watch((newValues) => {
+      const parsedFiles =
+        newValues.files
+          ?.filter((file) => Boolean(file?.storagePath))
+          .map((file) => ({
+            storagePath: file!.storagePath!,
+            fileName: file!.fileName!,
+          })) ?? [];
+
+      if (!isEqual(parsedFiles, previousFiles.current)) {
+        previousFiles.current = parsedFiles;
+        onChange?.(parsedFiles);
+      }
+    });
+
+    return () => formUpdateSubscription.unsubscribe();
+  }, [watch, onChange]);
 }
