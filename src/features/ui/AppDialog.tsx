@@ -21,8 +21,11 @@ interface Props {
   title: string;
   isOpen: boolean;
   onClose: () => void;
-  primaryButtonText: string;
-  onPrimaryButtonClick: () => void;
+  primaryButtonText?: string;
+  onPrimaryButtonClick?: () => void;
+  onSecondaryButtonClick?: () => void;
+  secondaryButtonText?: string;
+  disableSecondaryButton?: boolean;
   children: React.ReactNode;
   isForm?: boolean;
   maxWidth?: number;
@@ -34,6 +37,9 @@ export default function AppDialog({
   onClose,
   primaryButtonText,
   onPrimaryButtonClick,
+  onSecondaryButtonClick,
+  secondaryButtonText,
+  disableSecondaryButton,
   children,
   title,
   isForm,
@@ -100,14 +106,27 @@ export default function AppDialog({
             background: 'white',
           }}
         >
-          <AppButton
-            type={isForm ? 'submit' : 'button'}
-            fullWidth
-            onClick={onPrimaryButtonClick}
-            loading={isLoading}
-          >
-            {primaryButtonText}
-          </AppButton>
+          {primaryButtonText && (
+            <AppButton
+              type={isForm ? 'submit' : 'button'}
+              fullWidth
+              onClick={onPrimaryButtonClick}
+              loading={isLoading}
+            >
+              {primaryButtonText}
+            </AppButton>
+          )}
+          {secondaryButtonText && (
+            <AppButton
+              disabled={disableSecondaryButton}
+              variant="outlined"
+              type={isForm ? 'submit' : 'button'}
+              fullWidth
+              onClick={onSecondaryButtonClick}
+            >
+              {secondaryButtonText}
+            </AppButton>
+          )}
         </DialogActions>
       </Box>
     </Dialog>

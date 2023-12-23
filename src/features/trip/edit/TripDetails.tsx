@@ -15,7 +15,7 @@ import AppButton from '@features/ui/AppButton';
 
 import { useGetTripQuery, useUpdateTripMutation } from '../store/tripsApi';
 import type { Trip } from '../types';
-import Hero from './Hero';
+import Hero from './Hero/Hero';
 import TripTabs from './Tabs/TripTabs';
 
 export default function TripDetails() {
@@ -59,7 +59,7 @@ export default function TripDetails() {
             Delete
           </AppButton>
         </Stack>
-        <Hero trip={trip} />
+        <Hero trip={trip} onUpdate={onTripUpdate} />
         <TripTabs trip={trip} onUpdate={onTripUpdate} />
       </Stack>
     );
