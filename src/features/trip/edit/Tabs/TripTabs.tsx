@@ -9,6 +9,7 @@ import { Box, Tab, Tabs } from '@mui/material';
 
 import type { Trip } from '../../types';
 import Documents from './Documents';
+import Photos from './Photos';
 import TripInfoAndPlaces from './TripInfoAndPlaces';
 
 interface Props {
@@ -102,7 +103,7 @@ export default function TripTabs({ trip, onUpdate }: Props) {
         Expenses
       </CustomTabPanel>
       <CustomTabPanel value={selectedTab} index={4}>
-        Photos
+        <Photos trip={trip} onUpdate={onUpdate} />
       </CustomTabPanel>
     </Box>
   );
