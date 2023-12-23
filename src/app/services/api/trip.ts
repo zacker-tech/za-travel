@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -12,58 +13,67 @@ import {
 import type { Trip } from '@features/trip/types';
 import { auth, firestore } from '@services/firebase';
 
-export async function getTrips() {
+function authenticate<T>(authenticatedFn: () => Promise<T>) {
   if (!auth.currentUser) {
     throw Error('Looks like you are not-authorized to make this change!');
   }
 
-  const userTripsQuery = query(
-    collection(firestore, 'trips'),
-    where('userUid', '==', auth.currentUser.uid),
-  );
+  return authenticatedFn();
+}
 
-  const querySnapshot = await getDocs(userTripsQuery);
+export async function getTrips() {
+  return authenticate(async () => {
+    const userTripsQuery = query(
+      collection(firestore, 'trips'),
+      where('userUid', '==', auth.currentUser!.uid),
+    );
 
-  return querySnapshot.docs.map((doc) => doc.data() as Trip);
+    const querySnapshot = await getDocs(userTripsQuery);
+
+    return querySnapshot.docs.map((doc) => doc.data() as Trip);
+  });
 }
 
 export async function getTripById(tripId?: string) {
-  if (!auth.currentUser) {
-    throw Error('Looks like you are not-authorized to make this change!');
-  }
+  return authenticate(async () => {
+    if (!tripId) {
+      throw new Error('Trip not found!');
+    }
 
-  if (!tripId) {
-    throw new Error('Trip not found!');
-  }
+    const tripRef = doc(firestore, 'trips', tripId);
+    const tripSnap = await getDoc(tripRef);
 
-  const tripRef = doc(firestore, 'trips', tripId);
-  const tripSnap = await getDoc(tripRef);
+    if (!tripSnap.exists()) {
+      throw new Error('Trip not found!');
+    }
 
-  if (!tripSnap.exists()) {
-    throw new Error('Trip not found!');
-  }
-
-  return tripSnap.data() as Trip;
+    return tripSnap.data() as Trip;
+  });
 }
 
 export async function addTrip(trip: Trip) {
-  if (!auth.currentUser) {
-    throw Error('Looks like you are not-authorized to make this change!');
-  }
-
-  await setDoc(doc(firestore, 'trips', trip.id), {
-    ...trip,
-    userUid: auth.currentUser.uid,
+  return authenticate(async () => {
+    await setDoc(doc(firestore, 'trips', trip.id), {
+      ...trip,
+      userUid: auth.currentUser!.uid,
+    });
   });
 }
 
 export async function updateTrip(tripId: string, data: Partial<Trip>) {
-  if (!auth.currentUser) {
-    throw Error('Looks like you are not-authorized to make this change!');
-  }
+  return authenticate(async () => {
+    const tripRef = doc(firestore, 'trips', tripId);
+    await updateDoc(tripRef, data);
 
-  const tripRef = doc(firestore, 'trips', tripId);
-  await updateDoc(tripRef, data);
+    return true;
+  });
+}
 
-  return true;
+export async function deleteTrip(tripId: string) {
+  return authenticate(async () => {
+    const tripRef = doc(firestore, 'trips', tripId);
+    await deleteDoc(tripRef);
+
+    return true;
+  });
 }
