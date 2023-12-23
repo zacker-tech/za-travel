@@ -85,7 +85,7 @@ export default function TripDetails() {
         <Hero trip={trip} onUpdate={onTripUpdate} />
         <TripTabs trip={trip} onUpdate={onTripUpdate} />
         <AppDialog
-          title="Are you sure that you want to delete this document?"
+          title="Are you sure that you want to delete this trip?"
           primaryButtonText="Yes"
           secondaryButtonText="No"
           isOpen={isOpen}

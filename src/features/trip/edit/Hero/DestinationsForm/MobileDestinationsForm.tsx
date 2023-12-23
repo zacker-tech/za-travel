@@ -78,7 +78,6 @@ export default function MobileDestinationsForm({
             rules={{ required: 'Please specify where your trip starts!' }}
             render={({ field: { ref, ...field }, fieldState }) => (
               <TextField
-                autoFocus
                 inputProps={{
                   maxLength: 25,
                 }}
