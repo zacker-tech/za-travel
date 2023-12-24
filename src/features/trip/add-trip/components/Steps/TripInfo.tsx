@@ -12,6 +12,7 @@ import {
 
 import { Colors } from '@config/styles';
 import DateSelectInput from '@features/ui/form/DateSelectInput';
+import { useBreakpoints } from '@hooks/useBreakpoints';
 import useDialog from '@hooks/useDialog';
 import { useAppDispatch, useAppSelector } from '@store/index';
 
@@ -35,6 +36,7 @@ interface FormInput {
 }
 
 export default function TripInfo() {
+  const { md } = useBreakpoints();
   const { isOpen, open, close } = useDialog();
   const {
     tripId,
@@ -122,7 +124,7 @@ export default function TripInfo() {
                 fullWidth
                 id="name"
                 label="Trip Name"
-                autoFocus
+                autoFocus={md}
                 helperText={fieldState.error?.message}
                 error={Boolean(fieldState.error)}
                 {...field}
