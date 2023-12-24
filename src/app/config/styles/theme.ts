@@ -111,6 +111,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& button': {
+            fontSize: '1.125rem',
+            lineHeight: '1.688rem',
             minHeight: 65,
           },
         },
@@ -125,6 +127,18 @@ const theme = createTheme({
     },
   },
 });
+
+theme.components!.MuiTabs!.styleOverrides!.root = {
+  '& button': {
+    minHeight: 65,
+    fontSize: '1.125rem',
+    lineHeight: '1.688rem',
+    [theme.breakpoints.down('md')]: {
+      fontSize: '1rem',
+      lineHeight: '1.5rem',
+    },
+  },
+};
 
 theme.typography.h1 = {
   fontFamily: FontFamilies.poppins,
