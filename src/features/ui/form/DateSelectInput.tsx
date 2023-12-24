@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { type Control, Controller } from 'react-hook-form';
+import { type Control, Controller, type Validate } from 'react-hook-form';
 
 import type { SxProps, Theme } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -13,6 +13,8 @@ interface Props {
   requireErrorText?: string;
   maxDate?: Date | null;
   minDate?: Date | null;
+  validate?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Validate<any, any> | Record<string, Validate<any, any>> | undefined;
   sx?: SxProps<Theme>;
 }
 
@@ -24,13 +26,14 @@ export default function DateSelectInput({
   maxDate,
   minDate,
   fullWidth,
+  validate,
   sx,
 }: Props) {
   return (
     <Controller
       name={name}
       control={control}
-      rules={{ required: requireErrorText }}
+      rules={{ required: requireErrorText, validate }}
       render={({ field: { ref, ...field }, fieldState }) => (
         <DatePicker
           label={label}
