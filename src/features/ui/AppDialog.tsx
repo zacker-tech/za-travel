@@ -106,7 +106,7 @@ export default function AppDialog({
             px: { xs: MOBILE_PADDING_X, md: DESKTOP_PADDING_X },
             pb: { xs: MOBILE_PADDING_Y, md: DESKTOP_PADDING_Y },
             pt: 3,
-            position: { xs: 'absolute', md: 'static' },
+            position: { xs: 'sticky', md: 'static' },
             bottom: 0,
             width: '100%',
             background: 'white',
