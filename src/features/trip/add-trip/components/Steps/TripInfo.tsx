@@ -16,7 +16,7 @@ import useDialog from '@hooks/useDialog';
 import { useAppDispatch, useAppSelector } from '@store/index';
 
 import PreviewImageDialog from '../../../components/PreviewImageDialog';
-import { usePreviewImageSrc } from '../../../hooks/usePreviewImageHook';
+import { usePreviewImageSrc } from '../../../hooks/usePreviewImageSrc';
 import type { Trip } from '../../../types';
 import {
   nextStep,

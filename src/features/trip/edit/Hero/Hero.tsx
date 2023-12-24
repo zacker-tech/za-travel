@@ -5,7 +5,7 @@ import AppButton from '@features/ui/AppButton';
 import useDialog from '@hooks/useDialog';
 
 import PreviewImageDialog from '../../components/PreviewImageDialog';
-import { usePreviewImageSrc } from '../../hooks/usePreviewImageHook';
+import { usePreviewImageSrc } from '../../hooks/usePreviewImageSrc';
 import type { PreviewImage, Trip } from '../../types';
 import DestinationsForm from './DestinationsForm/DestinationsForm';
 
@@ -85,7 +85,7 @@ export default function Hero({ trip, onUpdate }: Props) {
         </AppButton>
         <Stack
           alignItems="center"
-          gap={2}
+          gap={{ xs: 1, md: 2 }}
           sx={{ position: 'relative', width: '100%' }}
         >
           <Typography variant="h2" color="white">

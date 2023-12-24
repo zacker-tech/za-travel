@@ -32,6 +32,7 @@ async function getPreviewImageSrc(previewImage?: PreviewImage | null) {
         )?.src
       : null;
   } else if (previewImage?.storagePath) {
+    console.log('here2');
     previewImageSrc = await getDownloadURL(previewImage.storagePath);
   }
 

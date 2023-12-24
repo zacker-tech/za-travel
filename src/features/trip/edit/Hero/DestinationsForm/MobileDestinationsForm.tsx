@@ -53,7 +53,7 @@ export default function MobileDestinationsForm({
             height: 36,
             textDecoration: 'underline',
             borderRadius: 1,
-            px: 2,
+            px: 1,
             color: 'white',
           }}
         >

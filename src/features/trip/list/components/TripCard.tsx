@@ -11,7 +11,7 @@ import {
 
 import { AppRoutes } from '@config/routes';
 import { Colors } from '@config/styles';
-import { usePreviewImageSrc } from '@features/trip/hooks/usePreviewImageHook';
+import { usePreviewImageSrc } from '@features/trip/hooks/usePreviewImageSrc';
 import { formatDate } from '@services/date';
 
 import type { Trip } from '../../types';
