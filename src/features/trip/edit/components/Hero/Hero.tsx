@@ -4,9 +4,9 @@ import { Stack, Typography } from '@mui/material';
 import AppButton from '@features/ui/AppButton';
 import useDialog from '@hooks/useDialog';
 
-import PreviewImageDialog from '../../components/PreviewImageDialog';
-import { usePreviewImageSrc } from '../../hooks/usePreviewImageSrc';
-import type { PreviewImage, Trip } from '../../types';
+import PreviewImageDialog from '../../../components/PreviewImageDialog';
+import { usePreviewImageSrc } from '../../../hooks/usePreviewImageSrc';
+import type { PreviewImage, Trip } from '../../../types';
 import DestinationsForm from './DestinationsForm/DestinationsForm';
 
 interface Props {

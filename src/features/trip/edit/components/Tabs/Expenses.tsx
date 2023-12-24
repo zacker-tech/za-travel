@@ -8,10 +8,10 @@ import AppButton from '@features/ui/AppButton';
 import { useBreakpoints } from '@hooks/useBreakpoints';
 import useDialog from '@hooks/useDialog';
 
-import ExpenseCategoryIcon from '../../components/Expenses/ExpenseCategoryIcon';
-import ExpenseDialog from '../../components/Expenses/ExpenseDialog';
-import { EXPENSE_ICON_BY_CATEGORY } from '../../data';
-import type { Expense, ExpenseCategory, Trip } from '../../types';
+import ExpenseCategoryIcon from '../../../components/Expenses/ExpenseCategoryIcon';
+import ExpenseDialog from '../../../components/Expenses/ExpenseDialog';
+import { EXPENSE_ICON_BY_CATEGORY } from '../../../data';
+import type { Expense, ExpenseCategory, Trip } from '../../../types';
 import ContentCard from './ContentCard';
 
 type ExpenseGroup = {

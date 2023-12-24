@@ -10,7 +10,7 @@ import { Box, ButtonBase, FormHelperText, Input, Stack } from '@mui/material';
 
 import { Colors, FontWeights } from '@config/styles';
 
-import { MAX_TRIP_DESTINATIONS } from '../../../constants';
+import { MAX_TRIP_DESTINATIONS } from '../../../../constants';
 import type { DestinationsFormInput } from './DestinationsForm';
 
 interface Props {
