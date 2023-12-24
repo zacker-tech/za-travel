@@ -63,6 +63,15 @@ export default function TripInfoAndPlaces(props: Props) {
                   control={control}
                   requireErrorText="Please specify start date!"
                   maxDate={formValues.endDate}
+                  validate={{
+                    startDate: (startDate) =>
+                      !startDate ||
+                      (startDate &&
+                        formValues.endDate &&
+                        startDate < formValues.endDate)
+                        ? undefined
+                        : 'Start date should be before end date!',
+                  }}
                   sx={{
                     svg: { color: Colors.secondaryBlue },
                     maxWidth: { md: 150 },
@@ -74,6 +83,15 @@ export default function TripInfoAndPlaces(props: Props) {
                   control={control}
                   requireErrorText="Please specify end date!"
                   minDate={formValues.startDate}
+                  validate={{
+                    endDate: (endDate) =>
+                      !endDate ||
+                      (endDate &&
+                        formValues.startDate &&
+                        formValues.startDate < endDate)
+                        ? undefined
+                        : 'End date should be after start date!',
+                  }}
                   sx={{
                     svg: { color: Colors.secondaryBlue },
                     maxWidth: { md: 150 },
@@ -164,7 +182,12 @@ function useWatchChange(
 
   useEffect(() => {
     const formUpdateSubscription = watch((newValues) => {
-      if (newValues.name && newValues.startDate && newValues.endDate) {
+      if (
+        newValues.name &&
+        newValues.startDate &&
+        newValues.endDate &&
+        newValues.startDate < newValues.endDate
+      ) {
         onUpdateDebounced(newValues);
       }
     });
